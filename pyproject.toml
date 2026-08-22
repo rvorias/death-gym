@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "death-mountain-rl"
+version = "0.1.0"
+description = "A fast native Death Mountain game engine and a PPO agent that learns to play it"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.26",
+    "torch>=2.4",
+    # The trainer writes checkpoints as safetensors, not pickles.
+    "safetensors>=0.4",
+]
+
+# The engine and trainer need nothing else. These are for the extras above.
+[project.optional-dependencies]
+# Stable-Baselines3 adapter (dmfast.VecEnv) — only needed if you want to train
+# with MaskablePPO instead of the bundled trainer.
+sb3 = [
+    "gymnasium>=0.29",
+    "stable-baselines3>=2.7",
+    "sb3-contrib>=2.7",
+]
+dev = [
+    "pytest>=8",
+    "safetensors>=0.4",
+    "gymnasium>=0.29",
+    "stable-baselines3>=2.7",
+    "sb3-contrib>=2.7",
+]
+
+[tool.setuptools]
+py-modules = ["train", "rewards", "tui", "checkpoint"]
+
+[tool.setuptools.packages.find]
+include = ["dmfast*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

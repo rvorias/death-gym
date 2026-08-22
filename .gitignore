@@ -1,0 +1,28 @@
+# Native engine build artifacts
+engine/build/
+
+# Python
+__pycache__/
+*.py[oc]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# Environments
+.venv/
+venv/
+
+# Everything machine-local lives here and is never committed: training
+# output (checkpoints/, logs/), and the competition tooling (tools/) with
+# its tests.
+local/
+
+# Model weights and packed entries, wherever they land
+*.pt
+*.safetensors
+submission.zip
+
+# Editor and agent scaffolding
+.claude/
