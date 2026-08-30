@@ -1250,9 +1250,9 @@ def current_arch(use_lstm=True, transformer=False):
 
 
 # Training hyperparameters and reward weights are recorded alongside the
-# weights. They do not change the tensor set and the evaluator does not act on
-# them -- a submission is still scored purely on how the policy plays -- but an
-# entry that cannot say how it was produced is not reproducible.
+# weights. Nothing reads them back at eval time -- a policy is scored purely on
+# how it plays -- but a checkpoint that cannot say how it was produced is not
+# reproducible.
 TRAINING_PARAM_GLOBALS = (
     "NUM_ENVS", "MAX_STEPS", "ROLLOUT_STEPS", "LR", "GAMMA", "GAE_LAMBDA",
     "CLIP_EPS", "ENTROPY_COEF_START", "ENTROPY_COEF_END", "MAX_GRAD_NORM",
@@ -1283,28 +1283,25 @@ def current_training(seed=None):
 EVAL_WORLDS = 1000
 EVAL_SEED = 7
 
-# The competition eval: a much larger bank, scored once per submission rather
-# than every checkpoint. Wider than any batch, so eval_policy runs it in
-# chunks -- see WORLD_SEED_STRIDE.
-COMPETITION_WORLDS = 65_536 // 4
-# The final score is the mean over THREE banks, not one. reset() is a pure
-# function of its seed, so a published scoring seed is a test set anyone can
-# train on directly -- and a single held-back bank is still one draw, where a
-# lucky seed is worth real points. The seeds below are the published PRACTICE
-# banks; organisers set DM_COMPETITION_SEEDS to three private ones at scoring
-# time, released only with the results.
-# The public group. Published, so anyone can score themselves and check the
-# public leaderboard; never the group the prize is decided on.
-PUBLIC_SEEDS = (3930, 7717, 20477)
-COMPETITION_SEEDS = tuple(
+# The full eval: a much larger bank than the trainer's per-checkpoint one,
+# for when you want a number you can quote. Wider than any batch, so
+# eval_policy runs it in chunks -- see WORLD_SEED_STRIDE.
+BANK_WORLDS = 65_536 // 4
+# The score is the mean over THREE banks, not one. reset() is a pure function
+# of its seed, so a single bank is one draw, and a lucky seed is worth real
+# points. Override with DM_EVAL_SEEDS to score on worlds you have not tuned
+# against -- the defaults below are the ones every run here reports, so a
+# policy selected on them is selected on a test set it has already seen.
+DEFAULT_BANK_SEEDS = (3930, 7717, 20477)
+BANK_SEEDS = tuple(
     int(x) for x in os.environ.get(
-        "DM_COMPETITION_SEEDS", ",".join(map(str, PUBLIC_SEEDS))).split(",")
+        "DM_EVAL_SEEDS", ",".join(map(str, DEFAULT_BANK_SEEDS))).split(",")
 )
-COMPETITION_SEED = COMPETITION_SEEDS[0]   # the single-bank default, for --eval-only
-# The scored eval gets its own env at a pinned width, not the training batch:
-# batch width changes the action-sampling stream, so it is part of the
-# protocol. 65_536 is exactly 32 chunks of 2_048, with no short tail.
-COMPETITION_BATCH = 2_048
+BANK_SEED = BANK_SEEDS[0]   # the single-bank default, for --eval-only
+# The full eval gets its own env at a pinned width, not the training batch:
+# batch width changes the action-sampling stream, so two runs are only
+# comparable at the same width. 65_536 is exactly 32 chunks of 2_048.
+BANK_BATCH = 2_048
 
 # ex_reset_env hands env i the world seed `seed + i * WORLD_SEED_STRIDE`
 # (dmfast_exact.c). The stride is affine in the env index, so worlds
@@ -1441,8 +1438,7 @@ def eval_policy(env, policy, device, worlds=EVAL_WORLDS, seed=EVAL_SEED,
     The batch WIDTH is part of the protocol, not an implementation detail: the
     policy samples one action per env per step from a shared stream, so the
     same bank scored with a different env.num_envs draws different actions and
-    returns a different number. Score a submission at the width the
-    competition fixes.
+    returns a different number. Compare numbers only at equal width.
 
     Each world counts its FIRST episode only. On death the engine draws the
     next world from a batch-wide counter (`ex_reset_env(b, idx,
@@ -1488,18 +1484,18 @@ def eval_policy(env, policy, device, worlds=EVAL_WORLDS, seed=EVAL_SEED,
     return np.concatenate(parts), n_truncated, merge_stats(stat_parts)
 
 
-def competition_score(policy, device, seeds=None, worlds=COMPETITION_WORLDS,
+def bank_score(policy, device, seeds=None, worlds=BANK_WORLDS,
                       mask_transform=None, progress=False, env_factory=None):
-    """Score a policy over every competition bank and average the banks.
+    """Score a policy over every eval bank and average the banks.
 
     Each bank gets a clean env at the pinned width: batch width is part of the
     protocol, and the training env is both the wrong width and liable to carry
     curriculum knobs. Returns (per_seed, mean_xp, total_truncated) where
     per_seed is a list of (seed, xps, truncated).
     """
-    seeds = tuple(COMPETITION_SEEDS if seeds is None else seeds)
+    seeds = tuple(BANK_SEEDS if seeds is None else seeds)
     make_env = env_factory or (lambda seed: GameEnv(
-        num_envs=COMPETITION_BATCH, seed=seed, max_steps=MAX_STEPS,
+        num_envs=BANK_BATCH, seed=seed, max_steps=MAX_STEPS,
         reward_config=REWARD_CONFIG))
     per_seed, truncated = [], 0
     for i, seed in enumerate(seeds, 1):
@@ -1521,7 +1517,7 @@ def competition_score(policy, device, seeds=None, worlds=COMPETITION_WORLDS,
     return per_seed, mean_xp, truncated
 
 
-def print_competition_result(per_seed, mean_xp, truncated, batch):
+def print_bank_result(per_seed, mean_xp, truncated, batch):
     for seed, xps, trunc, _ in per_seed:
         print(f"  seed {seed:<12} avg {xps.mean():8.1f}   max {xps.max():7.1f}   "
               f"median {np.median(xps):7.1f}   truncated {trunc}")
@@ -2100,10 +2096,11 @@ def main():
                         help="Override CHECKPOINT_EVERY_STEPS")
     parser.add_argument("--eval-only", action="store_true",
                         help="Skip training, only run fresh-reset eval on --resume checkpoint")
-    parser.add_argument("--competition-eval", action="store_true",
-                        help=f"Score on the competition banks instead of the training "
-                             f"one: {len(COMPETITION_SEEDS)} x {COMPETITION_WORLDS} worlds "
-                             f"at seeds {','.join(map(str, COMPETITION_SEEDS))}. "
+    parser.add_argument("--full-eval", action="store_true",
+                        help=f"Score on the full banks instead of the training "
+                             f"one: {len(BANK_SEEDS)} x {BANK_WORLDS} worlds "
+                             f"at seeds {','.join(map(str, BANK_SEEDS))}. "
+                             f"Set DM_EVAL_SEEDS to score elsewhere. "
                              f"Implies --eval-only.")
     parser.add_argument("--seed", type=int, default=42,
                         help="Training seed (torch/np/env). Eval seed stays fixed at 7 so all "
@@ -2304,10 +2301,10 @@ def main():
     # torch 2.x; numerics shift is within seed-noise for this workload.
     torch.set_float32_matmul_precision("high")
     torch.backends.cudnn.allow_tf32 = True
-    # Eval scores what gets submitted, and a submission is never a pickle.
-    # Accepting .pt here would mean the scoring path executes whatever the file
-    # contains -- exactly what the submission format exists to prevent.
-    if (args.eval_only or args.competition_eval) and args.resume \
+    # Accepting .pt here would mean the scoring path executes whatever the
+    # file contains. Eval is the one place that must stay safe to point at a
+    # checkpoint someone else produced.
+    if (args.eval_only or args.full_eval) and args.resume \
             and not str(args.resume).endswith(".safetensors"):
         raise SystemExit(
             f"eval only accepts .safetensors checkpoints, got {args.resume}\n"
@@ -2316,9 +2313,9 @@ def main():
 
     device = select_device()
     print(f"Device: {device} ({torch.cuda.get_device_name(device) if device.type == 'cuda' else 'cpu'})")
-    if args.competition_eval:
-        print(f"Train seed: {seed} (competition eval: {len(COMPETITION_SEEDS)} banks of "
-              f"{COMPETITION_WORLDS} worlds, seeds {','.join(map(str, COMPETITION_SEEDS))})")
+    if args.full_eval:
+        print(f"Train seed: {seed} (full eval: {len(BANK_SEEDS)} banks of "
+              f"{BANK_WORLDS} worlds, seeds {','.join(map(str, BANK_SEEDS))})")
     else:
         print(f"Train seed: {seed} (eval: {EVAL_WORLDS} worlds at seed {EVAL_SEED})")
 
@@ -2391,36 +2388,6 @@ def main():
         policy = MLPPolicy(use_lstm=use_lstm).to(device)
     if not use_lstm:
         print("Arch mode: MLP ablation (LSTM skipped, gate frozen)")
-    # Say up front whether this run can be entered, rather than at packing
-    # time after the GPU-days are spent.
-    ineligible = []
-    for flag, on in (("--equivariant-head", EQUIVARIANT_HEAD),
-                     ("--quantile-value", QUANTILE_VALUE),
-                     ("DECOUPLED_VALUE", DECOUPLED_VALUE),
-                     ("SPR_AUX", SPR_AUX)):
-        if on:
-            ineligible.append(f"{flag} (changes the tensor set)")
-    if args.transformer:
-        grid = (("d_model", TOKEN_D_MODEL, (128, 256)),
-                ("n_layers", TOKEN_LAYERS, (2, 4)),
-                ("n_heads", TOKEN_HEADS, (4, 8)),
-                ("ff_dim", TOKEN_FF, (512, 1024)))
-    else:
-        if MEMORY_TYPE != "lstm":
-            ineligible.append(f"MEMORY_TYPE={MEMORY_TYPE!r} (only 'lstm' is eligible)")
-        grid = (("embed_dim", EMBED_DIM, (128, 256, 512)),
-                ("hidden_dim", HIDDEN_DIM, (128, 256, 512)),
-                ("num_trunk_blocks", TRUNK_NUM_BLOCKS, (1, 2, 3)))
-    for name, value, allowed in grid:
-        if value not in allowed:
-            ineligible.append(f"{name}={value} (competition allows {list(allowed)})")
-    if ineligible:
-        print("!! NOT SUBMITTABLE -- checkpoints from this run cannot be entered:")
-        for reason in ineligible:
-            print(f"     - {reason}")
-        print("   Training will proceed. See the competition rules in README.md.",
-              flush=True)
-
     optimizer = torch.optim.Adam(policy.parameters(), lr=LR)
 
     start_iteration = 0
@@ -2487,12 +2454,12 @@ def main():
         prior.encoder.compile()
         prior.input_trunk.compile()
 
-    if args.competition_eval:
+    if args.full_eval:
         mask = shop_gate_mask if args.shop_gate else None
-        per_seed, mean_xp, trunc = competition_score(
+        per_seed, mean_xp, trunc = bank_score(
             policy, device, mask_transform=mask, progress=True)
         print("---")
-        print_competition_result(per_seed, mean_xp, trunc, COMPETITION_BATCH)
+        print_bank_result(per_seed, mean_xp, trunc, BANK_BATCH)
         env.close()
         return
 

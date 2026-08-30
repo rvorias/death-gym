@@ -25,9 +25,9 @@ _default:
 build:
     make -C {{root}}/engine
 
-# The maintainer's check: newest gcc here, warnings fatal. Participants get
-# the portable default; this is what stops us shipping code their compiler
-# rejects. Restores the normal build afterwards.
+# The strict check: newest gcc here, warnings fatal. The default build stays
+# portable; this is what stops us shipping code another compiler rejects.
+# Restores the normal build afterwards.
 build-strict:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -43,7 +43,7 @@ build-strict:
 clean:
     make -C {{root}}/engine clean
 
-# Engine, reward, checkpoint, and submission-format tests (114 tests)
+# Engine, reward, checkpoint, and environment tests
 test: build
     {{py}} -m pytest {{root}}/tests -q
 
@@ -84,30 +84,11 @@ train *ARGS: build
     {{py}} {{root}}/train.py {{ARGS}} 2>&1 | tee {{root}}/local/logs/${DM_LOG:-run}.log
 
 #   just eval local/checkpoints/my-run/final.safetensors
-# The scored eval, not the cheap one the trainer runs per checkpoint.
-# Score a checkpoint on the practice banks: 3 x 16384 worlds
+#   DM_EVAL_SEEDS=1,2,3 just eval ...   # score on other worlds
+# The full eval, not the cheap one the trainer runs per checkpoint.
+# Score a checkpoint on the standard banks: 3 x 16384 worlds
 eval CKPT *ARGS: build
-    {{py}} {{root}}/train.py --competition-eval --resume {{CKPT}} {{ARGS}}
-
-# ─── Competition ────────────────────────────────────────────────────────
-
-#   just submit local/checkpoints/my-run/final.safetensors
-# Pack a checkpoint into submission.zip and check it against the rules
-submit CKPT *ARGS:
-    {{py}} {{root}}/tools/export_submission.py {{CKPT}} {{ARGS}}
-
-# Check a submission zip against the competition rules, then load it
-check-submission ZIP:
-    {{py}} {{root}}/tools/validate_submission.py {{ZIP}} --load
-
-# Score a submission zip itself on the competition bank -- the real number
-score-submission ZIP *ARGS:
-    {{py}} {{root}}/tools/evaluate_submission.py {{ZIP}} {{ARGS}}
-
-#   DM_COMPETITION_SEEDS=... just watch 0xTASKID
-# Poll a Taskmarket task, score every new submission, write local/leaderboard.json
-watch TASK *ARGS: build
-    {{py}} {{root}}/tools/watch_submissions.py {{TASK}} {{ARGS}}
+    {{py}} {{root}}/train.py --full-eval --resume {{CKPT}} {{ARGS}}
 
 # ─── Dashboard ──────────────────────────────────────────────────────────
 
