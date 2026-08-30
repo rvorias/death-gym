@@ -692,6 +692,31 @@ static int32_t ex_greatness_from_xp(int32_t xp) {
     return g;
 }
 
+/* Luck is a pure function of jewelry greatness, but special_stats[] caches it
+ * and only the inventory kernel (dmfast_inventory_recalculate_special_stats)
+ * ever recomputes it. Two paths change the inputs without going through that
+ * kernel: combat raises equipment_xp (and so greatness) on every hit, and
+ * ex_step_buy_item writes jewelry straight into equipment_ids. Either way luck
+ * went stale until the next equip/drop happened to refresh it. Recomputed once
+ * per step instead; mirrors the kernel's formula exactly, silver ring included. */
+static void ex_refresh_luck(DMFastExactEnv *e) {
+    int32_t neck = 0, ring = 0, bag_jewelry = 0;
+    for (int i = 0; i < EX_NUM_EQUIPMENT_SLOTS; ++i) {
+        if (e->equipment_ids[i] == 0) continue;
+        if (i == 6) neck = ex_greatness_from_xp(e->equipment_xp[i]);
+        else if (i == 7) ring = ex_greatness_from_xp(e->equipment_xp[i]);
+    }
+    for (int i = 0; i < EX_NUM_BAG_SLOTS; ++i) {
+        if (e->bag_ids[i] == 0) continue;
+        int slot = dmfast_loot_slot(e->bag_ids[i]);
+        if (slot == 7 || slot == 8)
+            bag_jewelry += ex_greatness_from_xp(e->bag_xp[i]);
+    }
+    /* Mirrors DMFAST_SILVER_RING_ID; dmfast_internal.h is not in scope here. */
+    e->special_stats[EX_STAT_LUCK] = neck + ring + bag_jewelry
+        + (e->equipment_ids[7] == 4 ? ring : 0);
+}
+
 static int32_t ex_max_health(const DMFastExactEnv *e) {
     int mh = EX_STARTING_HEALTH
         + (e->stats[EX_STAT_VIT] + e->special_stats[EX_STAT_VIT]) * EX_HEALTH_PER_VITALITY;
@@ -1254,6 +1279,7 @@ static void ex_reset_env(DMFastExactBatch *b, int idx, uint64_t seed) {
     e->item_specials_seed = out_item_specials_seed;
     memcpy(e->stats, out_stats, sizeof(out_stats));
     memcpy(e->special_stats, out_special_stats, sizeof(out_special_stats));
+    ex_refresh_luck(e);
     memcpy(e->equipment_ids, out_equipment_ids, sizeof(out_equipment_ids));
     memcpy(e->equipment_xp, out_equipment_xp, sizeof(out_equipment_xp));
     memcpy(e->equipment_specials, out_equipment_specials, sizeof(out_equipment_specials));
@@ -2657,6 +2683,10 @@ static void ex_step_one(DMFastExactBatch *b, int idx, int32_t action, int auto_r
             default:
                 break;
         }
+
+        /* Every action above can change jewelry greatness or the jewelry
+         * itself; refresh once here rather than at each mutation site. */
+        ex_refresh_luck(e);
 
         /* ─── Per-step global rewards ─── */
         int32_t cur_level = ex_level_from_xp(e->adventurer_xp);
