@@ -15,14 +15,12 @@ dist/
 venv/
 
 # Everything machine-local lives here and is never committed: training
-# output (checkpoints/, logs/), and the competition tooling (tools/) with
-# its tests.
+# output (checkpoints/, logs/) and anything else this machine happens to hold.
 local/
 
-# Model weights and packed entries, wherever they land
+# Model weights, wherever they land
 *.pt
 *.safetensors
-submission.zip
 
 # Editor and agent scaffolding
 .claude/

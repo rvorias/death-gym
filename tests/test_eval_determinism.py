@@ -1,7 +1,8 @@
 """A fixed model on fixed seeds must always produce the same eval.
 
-The competition score is only meaningful if it depends on the policy and
-nothing else. These pin the properties that make that true.
+A score is only meaningful if it depends on the policy and nothing else --
+otherwise two runs are not comparable and neither is a before/after. These
+pin the properties that make that true.
 """
 import sys
 from pathlib import Path

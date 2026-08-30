@@ -2,8 +2,8 @@
 
 A `torch.save` checkpoint is a pickle: loading one executes arbitrary code, and
 it carries no record of the architecture that produced it. Both facts caused
-real problems — a submission could declare the wrong architecture and still
-validate, because nothing could contradict it.
+real problems — a checkpoint could be resumed at the wrong shape, because
+nothing in the file could contradict the flags you passed.
 
 This module writes one `.safetensors` file instead:
 
