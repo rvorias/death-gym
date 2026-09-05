@@ -1,0 +1,66 @@
+{
+  "scope": "Exploratory matched-seed architecture comparisons on the selection bank; conditional on two fine-tuning seeds of one pretrained parent. Not an independent architecture confirmation.",
+  "bank": 20261201,
+  "comparisons": {
+    "31": {
+      "worlds": 4000,
+      "first": {
+        "mean": 368.051,
+        "median": 209.0,
+        "q25": 131.0,
+        "probability_xp_ge_215": 0.489,
+        "probability_xp_ge_400": 0.29725
+      },
+      "second": {
+        "mean": 358.923,
+        "median": 207.0,
+        "q25": 130.0,
+        "probability_xp_ge_215": 0.484,
+        "probability_xp_ge_400": 0.29475
+      },
+      "mean_difference": 9.128,
+      "mean_difference_se": 5.304486772910363,
+      "mean_difference_ci95": [
+        -1.2452937499999996,
+        19.10775625
+      ],
+      "median_difference": 2.0,
+      "median_difference_ci95": [
+        -3.0,
+        8.0
+      ],
+      "bootstrap_replicates": 4000,
+      "bootstrap_seed": 917
+    },
+    "32": {
+      "worlds": 4000,
+      "first": {
+        "mean": 361.6315,
+        "median": 208.0,
+        "q25": 130.0,
+        "probability_xp_ge_215": 0.48925,
+        "probability_xp_ge_400": 0.29975
+      },
+      "second": {
+        "mean": 368.0635,
+        "median": 209.0,
+        "q25": 131.0,
+        "probability_xp_ge_215": 0.48625,
+        "probability_xp_ge_400": 0.3075
+      },
+      "mean_difference": -6.432,
+      "mean_difference_se": 5.766299584371608,
+      "mean_difference_ci95": [
+        -17.682625,
+        4.923250000000008
+      ],
+      "median_difference": -1.0,
+      "median_difference_ci95": [
+        -7.0,
+        6.5
+      ],
+      "bootstrap_replicates": 4000,
+      "bootstrap_seed": 917
+    }
+  }
+}

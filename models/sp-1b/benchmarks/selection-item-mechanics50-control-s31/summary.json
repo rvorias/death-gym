@@ -1,0 +1,33 @@
+{
+  "20261201": {
+    "worlds": 4000,
+    "first": {
+      "mean": 358.923,
+      "median": 207.0,
+      "q25": 130.0,
+      "probability_xp_ge_215": 0.484,
+      "probability_xp_ge_400": 0.29475
+    },
+    "second": {
+      "mean": 359.849,
+      "median": 206.0,
+      "q25": 130.0,
+      "probability_xp_ge_215": 0.4815,
+      "probability_xp_ge_400": 0.2955
+    },
+    "mean_difference": -0.926,
+    "mean_difference_se": 6.059031758248332,
+    "mean_difference_ci95": [
+      -12.50379375,
+      11.132412500000001
+    ],
+    "median_difference": 1.0,
+    "median_difference_ci95": [
+      -5.0,
+      7.0
+    ],
+    "bootstrap_replicates": 4000,
+    "bootstrap_seed": 917,
+    "valid_zero_truncations": true
+  }
+}

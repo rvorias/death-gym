@@ -1,0 +1,132 @@
+{
+  "format_version": 1,
+  "checkpoint_sha256": "ecaaffe7a1e57c513744c54f0d435a5b2f9b7f36d20d99dca6ab7cc7a195033e",
+  "lineage": {
+    "release_decision": "incumbent retained",
+    "checkpoint_name": "local/checkpoints/sp-1b/final.safetensors",
+    "pretrained_parent_completed_transitions": 999948288,
+    "additional_policy_training_transitions": 0,
+    "value_head_scope": "Critic outputs estimate discounted training reward, not terminal XP. The retained original incumbent also carries its historical reward-layout caveat.",
+    "parent_history": "The 1B parent predates the native reward-layout repair; do not attribute its historical training to the corrected intended reward.",
+    "transfer_history": "Candidate arms used actor-preserving semantic90 transfer, calibrated corrected-reward critic, and fresh optimizers; mechanics arm adds zero-initialized version1 item residuals."
+  },
+  "evaluation": {
+    "status": "confirmation",
+    "bank": [
+      20261202,
+      16000
+    ],
+    "batch": 512,
+    "precision": "float32, no autocast",
+    "release_scores": {
+      "mean": 359.804125,
+      "median": 207.0,
+      "q25": 129.0,
+      "probability_xp_ge_215": 0.4851875,
+      "probability_xp_ge_400": 0.29475
+    },
+    "selected_candidate": "item-mechanics50-control-s32",
+    "promotion_passed": false,
+    "paired_candidate_minus_incumbent": {
+      "worlds": 16000,
+      "first": {
+        "mean": 362.5613125,
+        "median": 207.0,
+        "q25": 129.0,
+        "probability_xp_ge_215": 0.4855625,
+        "probability_xp_ge_400": 0.2956875
+      },
+      "second": {
+        "mean": 359.804125,
+        "median": 207.0,
+        "q25": 129.0,
+        "probability_xp_ge_215": 0.4851875,
+        "probability_xp_ge_400": 0.29475
+      },
+      "mean_difference": 2.7571875,
+      "mean_difference_se": 2.9727314563682583,
+      "mean_difference_ci95": [
+        -3.0222484374999996,
+        8.441
+      ],
+      "median_difference": 0.0,
+      "median_difference_ci95": [
+        -3.0,
+        4.0
+      ],
+      "bootstrap_replicates": 4000,
+      "bootstrap_seed": 917,
+      "valid_zero_truncations": true
+    },
+    "interpretation": "This is the strongest retained model under the predeclared project promotion rule; no optimality claim.",
+    "simulator": "Corrected native CPU reward/mask source identified by the confirmation manifest."
+  },
+  "compute": {
+    "campaign_valid_training_transitions": 199753728,
+    "smoke_training_transitions": 1048576,
+    "aggregate_trainer_process_hours": 1.2465583018461863,
+    "trainer_processes": {
+      "item-mechanics50-mechanics-s31": {
+        "status": "complete",
+        "gpu": 0,
+        "seconds": 1057.5932064056396,
+        "returncode": 0
+      },
+      "item-mechanics50-control-s31": {
+        "status": "complete",
+        "gpu": 1,
+        "seconds": 1061.9149842262268,
+        "returncode": 0
+      },
+      "item-mechanics50-control-s32": {
+        "status": "complete",
+        "gpu": 0,
+        "seconds": 959.9757077693939,
+        "returncode": 0
+      },
+      "item-mechanics50-mechanics-s32": {
+        "status": "complete",
+        "gpu": 1,
+        "seconds": 1408.1259882450104,
+        "returncode": 0
+      }
+    },
+    "time_scope": "Trainer process wall time includes compilation and embedded diagnostic evaluation; not a hardware energy measurement.",
+    "explicit_campaign_comparison_games": 64000,
+    "embedded_diagnostic_evaluation_games": 4000,
+    "historical_pretraining_gpu_hours": null,
+    "electricity_kwh": null
+  },
+  "sources": [
+    {
+      "file": "evidence/source-00.json",
+      "role": "Predeclared training and selection protocol",
+      "sha256": "fac67e4669817c77825fe3a445fc2d11782fbfb5f4a8be8f2cdb8bf1ee83c7c4"
+    },
+    {
+      "file": "evidence/source-01.json",
+      "role": "Endpoint selection and independent confirmation",
+      "sha256": "69cdde4a6803b9dbbdb5142ced2fdad4ecda64b74218dfc465bc00dbfae02d0b"
+    },
+    {
+      "file": "evidence/source-02.json",
+      "role": "Frozen training source and parent hashes",
+      "sha256": "05d51faadb07f6f260e6936d052a07c0629ce97c03aa646b11973c4a92e7aa1d"
+    },
+    {
+      "file": "evidence/source-03.json",
+      "role": "Recorded training software and hardware",
+      "sha256": "c1cdaf4c0a7bc313dcda99a7f432cddba411cb2a65550977970a40ddca41aebb"
+    },
+    {
+      "file": "evidence/source-04.json",
+      "role": "Confirmation checkpoint and simulator identity",
+      "sha256": "9b84476e30dfdb4ea9e9f1cf282010dd7a9cdfa7bad46007e432ac9ef239c384"
+    },
+    {
+      "file": "evidence/source-05.json",
+      "role": "Confirmation execution and truncations",
+      "sha256": "c58d83edbba5d40688d83ab88cb44cc87e855ee5bd3e4f13bdbb9dd841b6f483"
+    }
+  ]
+}

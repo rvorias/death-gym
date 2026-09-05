@@ -1,0 +1,29 @@
+{
+  "checkpoint_sha256": "ecaaffe7a1e57c513744c54f0d435a5b2f9b7f36d20d99dca6ab7cc7a195033e",
+  "observations": 384,
+  "device": "cpu",
+  "precision": "float32",
+  "source_isolation": "Python -I outside repository",
+  "blocked_imports": [
+    "dmfast",
+    "triton",
+    "train",
+    "rewards"
+  ],
+  "comparisons": {
+    "raw_observations": {
+      "logits": 0.0,
+      "values": 0.0,
+      "h": 0.0,
+      "c": 0.0,
+      "greedy_action_disagreements": 0
+    },
+    "exact_features": {
+      "logits": 0.0,
+      "values": 0.0,
+      "h": 0.0,
+      "c": 0.0,
+      "greedy_action_disagreements": 0
+    }
+  }
+}

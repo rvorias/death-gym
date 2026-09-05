@@ -1,0 +1,46 @@
+{
+  "python": "3.13.11 (main, Dec 17 2025, 21:08:16) [Clang 21.1.4 ]",
+  "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+  "packages": {
+    "torch": "2.8.0+cu128",
+    "numpy": "2.5.2",
+    "safetensors": "0.8.0",
+    "triton": "3.4.0"
+  },
+  "process_environment": {
+    "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "DM_SEM_V4": "1"
+  },
+  "commands": {
+    "gpus": {
+      "argv": [
+        "nvidia-smi",
+        "--query-gpu=index,name,uuid,driver_version,memory.total",
+        "--format=csv"
+      ],
+      "returncode": 0,
+      "stdout": "index, name, uuid, driver_version, memory.total [MiB]\n0, NVIDIA RTX A5000, GPU-1883becf-04de-f026-a260-3a5a9f3c1a06, 560.35.05, 24564 MiB\n1, NVIDIA RTX 4000 SFF Ada Generation, GPU-19a9ad51-cb56-4f5e-020f-7861f2ba12b1, 560.35.05, 20475 MiB\n",
+      "stderr": ""
+    },
+    "compiler": {
+      "argv": [
+        "cc",
+        "--version"
+      ],
+      "returncode": 0,
+      "stdout": "cc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nCopyright (C) 2021 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    "cuda_compiler": {
+      "argv": [
+        "nvcc",
+        "--version"
+      ],
+      "returncode": 0,
+      "stdout": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2024 NVIDIA Corporation\nBuilt on Thu_Jun__6_02:18:23_PDT_2024\nCuda compilation tools, release 12.5, V12.5.82\nBuild cuda_12.5.r12.5/compiler.34385749_0\n",
+      "stderr": ""
+    }
+  }
+}
