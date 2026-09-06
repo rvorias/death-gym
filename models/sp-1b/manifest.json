@@ -62,7 +62,7 @@
     "AUTHORSHIP_AND_LICENSE.md": "a57a29585100befc78a20c5ba9764b689960ac51e1cd8c9a505d6431b4c54c42",
     "LICENSE": "6094d79161134c5e43d7124fb2e8d2051392c77bb277f5f5594ee46a1cb59e5f",
     "MODEL_CARD.md": "31dae2ca1540b79121b2314d3e8d5e23990990a9959003ddb8473e64ae698807",
-    "README.md": "733f0079c44a913286f3ad13616fa384719fd71421d5bdfe85993d0ee4009c31",
+    "README.md": "87937b6646b1286a9f4326e27a0d61d7fc186e844fd8444add22c86546901fe9",
     "architecture.json": "86618bf19a5594e456c3113c27e83eec84becadef285b6642bb1c623fed07404",
     "benchmarks/architecture-comparison.json": "b29df6ce7a3d28fc39e2bb07b6c3a081668931037241301a98db8af34fe19d1d",
     "benchmarks/confirmation/evaluations.json": "c58d83edbba5d40688d83ab88cb44cc87e855ee5bd3e4f13bdbb9dd841b6f483",
@@ -103,5 +103,12 @@
     "validation-fixture.npz": "3cb5e3da1d7df0cff008b438a4f68443f1653ff5e35d7dbbd0cb61007ea3bebc",
     "validation.json": "2f6600afde903abf93342e03ffa0f9e84c30437ec16ec1d98e360c3e2dbc2498"
   },
-  "license": "MIT; scoped to this model directory"
+  "license": "MIT; scoped to this model directory",
+  "distribution": {
+    "preferred": "huggingface",
+    "repository": "rvorias/death-mountain-sp-1b",
+    "revision": "1c38b4d60add8852d0a456c29e7f08cab0b2eb55",
+    "tag": "v1.0",
+    "url": "https://huggingface.co/rvorias/death-mountain-sp-1b"
+  }
 }

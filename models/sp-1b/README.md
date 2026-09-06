@@ -8,10 +8,23 @@ A subsequent 199.75M-transition, four-run training comparison found no candidate
 that passed the predeclared promotion rule. This release therefore preserves
 the incumbent. [Model card and results](MODEL_CARD.md).
 
+[Hugging Face](https://huggingface.co/rvorias/death-mountain-sp-1b) is the preferred
+distribution for the weights, inference code, and self-test. Download the
+immutable snapshot behind release `v1.0`:
+
 ```sh
+python -m pip install huggingface_hub
+hf download rvorias/death-mountain-sp-1b \
+  --revision 1c38b4d60add8852d0a456c29e7f08cab0b2eb55 \
+  --local-dir death-mountain-sp-1b
+cd death-mountain-sp-1b
 python -m pip install -r requirements.txt
 python policy_api.py --self-test
 ```
+
+The commit pin keeps the download reproducible as the model repository changes.
+See the [Hugging Face CLI guide](https://huggingface.co/docs/huggingface_hub/guides/cli)
+for download options.
 
 The self-test uses the included real-observation fixture and expected outputs;
 it needs no game installation. To play, supply observations and legal masks
